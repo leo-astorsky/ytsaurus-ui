@@ -3,7 +3,7 @@ import {useHistory} from 'react-router';
 import cn from 'bem-cn-lite';
 import {FooterItem, PageLayoutAside} from '@gravity-ui/navigation';
 import {Menu} from '@gravity-ui/uikit';
-import {useSelector} from 'react-redux';
+import {useDispatch, useSelector} from 'react-redux';
 
 import Logo from '../../assets/img/svg/appLogo.svg';
 import GearIcon from '@gravity-ui/icons/svgs/gear.svg';
@@ -14,6 +14,7 @@ import {AppNavigationProps} from './AppNavigationPageLayout';
 import YT from '../../config/yt-config';
 import UIFactory from '../../UIFactory';
 import {getSettingsCluster} from '../../store/selectors/global';
+import {openAuthenticationTokensModal} from '../../store/actions/authentication-tokens';
 
 import './AppNavigationComponent.scss';
 
@@ -36,6 +37,7 @@ function AppNavigationComponent({
 
     onChangeCompact,
 }: Omit<AppNavigationProps, 'compact' | 'rememberSize' | 'className'>) {
+    const dispatch = useDispatch();
     const panelItems = React.useMemo(() => {
         return [
             {
@@ -167,6 +169,13 @@ function AppNavigationComponent({
                                                 </Menu.Item>
                                             )}
                                             <Menu.Item href={'/api/yt/logout'}>Logout</Menu.Item>
+                                            <Menu.Item
+                                                onClick={() =>
+                                                    dispatch(openAuthenticationTokensModal())
+                                                }
+                                            >
+                                                Authentication tokens
+                                            </Menu.Item>
                                         </Menu>
                                     </div>
                                 );
