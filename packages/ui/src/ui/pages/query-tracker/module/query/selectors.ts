@@ -19,13 +19,7 @@ import {
     filterFieldTree,
 } from '../../../../common/hammer/field-tree';
 import {ValueOf} from '../../../../../@types/types';
-
-export interface StatisticItemSummary {
-    min: number;
-    max: number;
-    sum: number;
-    count: number;
-}
+import {JobTreeItem, LeafStatistic} from '../../../../types/job';
 
 const QT_STAGE = getQueryTrackerStage();
 const getState = (state: RootState) => state.queryTracker.query;
@@ -119,12 +113,8 @@ export const getCurrentQueryACO = (state: RootState) =>
 export const getCurrentDraftQueryACO = (state: RootState) =>
     state.queryTracker.query?.draft?.access_control_object || DEFAULT_QUERY_ACO;
 
-const isSummaryItem = (v: ValueOf<FieldTree<StatisticItemSummary>>): v is StatisticItemSummary => {
-    if (typeof v === 'string') {
-        return true;
-    }
-
-    if (isNumber(v)) {
+const isSummaryItem = (v: ValueOf<FieldTree<LeafStatistic>>): v is LeafStatistic => {
+    if (typeof v === 'string' || isNumber(v)) {
         return true;
     }
 
@@ -169,22 +159,23 @@ const filterProgressYQLStatisticsTree = createSelector(
 export const getProgressYQLStatisticsFiltered = createSelector(
     [filterProgressYQLStatisticsTree],
     (tree) => {
-        const res: Array<{
-            name: string;
-            title: string;
-            level: number;
-            data?: StatisticItemSummary;
-            isLeafNode?: boolean;
-        }> = [];
-        fieldTreeForEach<StatisticItemSummary>(tree ?? {}, isSummaryItem, (path, _tree, item) => {
+        const res: Array<JobTreeItem> = [];
+        fieldTreeForEach<LeafStatistic>(tree ?? {}, isSummaryItem, (path, _tree, item) => {
             const isLeafNode = Boolean(item);
 
             res.push({
-                title: path[path.length - 1],
                 level: path.length - 1,
-                data: item,
+                attributes: {
+                    prefix: path.join('/'),
+                    name: path[path.length - 1],
+                    path: path.join('/'),
+                    value: item,
+                },
+                children: [],
                 isLeafNode,
                 name: path.join('/'),
+                _initedBy: '',
+                key: '',
             });
         });
         return res;

@@ -43,18 +43,6 @@ const reducer = (
             return {...state, tree};
         }
 
-        case JOB.EXPAND_TABLE: {
-            return {...state, treeState: JOB.TREE_STATE.EXPANDED};
-        }
-
-        case JOB.COLLAPSE_TABLE: {
-            return {...state, treeState: JOB.TREE_STATE.COLLAPSED};
-        }
-
-        case JOB.MIX_TABLE: {
-            return {...state, treeState: JOB.TREE_STATE.MIXED};
-        }
-
         case JOB.CHANGE_FILTER: {
             const filter: string = action.data.filter;
 
