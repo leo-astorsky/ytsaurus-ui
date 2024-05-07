@@ -9,12 +9,16 @@ export enum QueriesListAuthorFilter {
 export enum QueriesListMode {
     History = 'history',
     Tutorials = 'tutorials',
+    Navigation = 'navigation',
 }
 
 export const QueriesListModes = Object.values(QueriesListMode);
 
 export const QueriesListFilterPresets: Record<QueriesListMode, Partial<QueriesListFilter>> = {
     [QueriesListMode.History]: {
+        is_tutorial: false,
+    },
+    [QueriesListMode.Navigation]: {
         is_tutorial: false,
     },
     [QueriesListMode.Tutorials]: {
@@ -27,6 +31,7 @@ export const DefaultQueriesListFilter: Record<QueriesListMode, Partial<QueriesLi
         user: QueriesListAuthorFilter.My,
     },
     [QueriesListMode.Tutorials]: {},
+    [QueriesListMode.Navigation]: {},
 };
 
 export type QueriesListFilter = {

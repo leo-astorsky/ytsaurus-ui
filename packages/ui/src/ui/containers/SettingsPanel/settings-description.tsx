@@ -1,5 +1,5 @@
-import React from 'react';
-import {useSelector} from 'react-redux';
+import React, {useEffect} from 'react';
+import {useDispatch, useSelector} from 'react-redux';
 import {IconProps} from '@gravity-ui/uikit';
 import _compact from 'lodash/compact';
 import _filter from 'lodash/filter';
@@ -22,6 +22,7 @@ import navigationIcon from '../../../../img/svg/page-navigation.svg';
 import shieldIcon from '../../../../img/svg/shield-icon.svg';
 import tableIcon from '../../../../img/svg/table-icon.svg';
 import infoIcon from '../../../../img/svg/info-icon.svg';
+import LogoGitlabIcon from '@gravity-ui/icons/svgs/logo-gitlab.svg';
 import {useClusterFromLocation} from '../../hooks/use-cluster';
 import {docsUrl} from '../../config/index';
 import {uiSettings} from '../../config/ui-settings';
@@ -49,6 +50,9 @@ import {
 import YT from '../../config/yt-config';
 import Link from '../../components/Link/Link';
 import Button from '../../components/Button/Button';
+import {AddTokenForm, VcsList} from '../../pages/query-tracker/VcsNavigation/SettingsMenu';
+import {selectActiveTokens} from '../../pages/query-tracker/module/repoNavigation/selectors';
+import {checkExistingTokens} from '../../pages/query-tracker/module/repoNavigation/actions';
 
 export interface SettingsPage {
     title: string;
@@ -76,11 +80,17 @@ function wrapEscapeText(text: string) {
 }
 
 function useSettings(cluster: string, isAdmin: boolean): Array<SettingsPage> {
+    const dispatch = useDispatch();
     const clusterNS = useSelector(getCurrentClusterNS);
 
     const httpProxyVersion: string = useSelector(getHttpProxyVersion);
     const schedulerVersion: string = useSelector(getGlobalSchedulerVersion);
     const masterVersion: string = useSelector(getGlobalMasterVersion);
+    const tokens = useSelector(selectActiveTokens);
+
+    useEffect(() => {
+        dispatch(checkExistingTokens());
+    }, [dispatch]);
 
     return _compact([
         makePage('General', generalIcon, [
@@ -493,6 +503,16 @@ function useSettings(cluster: string, isAdmin: boolean): Array<SettingsPage> {
                     </Link>,
                 ),
             ]),
+
+        makePage(
+            'VCS',
+            LogoGitlabIcon,
+            _compact([
+                makeItem('Add or replace token', undefined, <AddTokenForm />),
+                Boolean(tokens.length) &&
+                    makeItem('Existing tokens', undefined, <VcsList tokens={tokens} />),
+            ]),
+        ),
 
         makePage(
             'About',
