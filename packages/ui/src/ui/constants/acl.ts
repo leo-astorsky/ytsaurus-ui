@@ -69,7 +69,20 @@ export type PermissionSettings = {
 };
 
 export const PERMISSIONS_SETTINGS: Record<IdmKindType, PermissionSettings> = {
-    [IdmObjectType.UI_EFFECTIVE_ACL]: {...PATH_SETTINGS, permissionsToRequest: []},
+    [IdmObjectType.UI_EFFECTIVE_ACL]: {
+        ...PATH_SETTINGS,
+        permissionsToRequest: [
+            ['read'],
+            ['write'],
+            ['use'],
+            ['administer'],
+            ['create'],
+            ['remove'],
+            ['mount'],
+            ['manage'],
+        ],
+        allowDeleteWithoutRevisionCheck: true,
+    },
     [IdmObjectType.PATH]: PATH_SETTINGS,
     [IdmObjectType.ACCESS_CONTROL_OBJECT]: {
         permissionTypes: PERMISSION_TYPES,

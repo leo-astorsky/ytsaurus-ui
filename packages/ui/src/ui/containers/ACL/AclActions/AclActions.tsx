@@ -5,7 +5,7 @@ import _ from 'lodash';
 import {Flex} from '@gravity-ui/uikit';
 
 import ErrorBoundary from '../../../components/ErrorBoundary/ErrorBoundary';
-import {AclMode, IdmObjectType} from '../../../constants/acl';
+import {AclMode} from '../../../constants/acl';
 
 import RequestPermissions from '../RequestPermissions/RequestPermissions';
 import ManageAcl from '../ManageAcl/ManageAcl';
@@ -92,42 +92,40 @@ export class AclActions extends Component<Props> {
 
         return (
             <ErrorBoundary>
-                {idmKind !== IdmObjectType.UI_EFFECTIVE_ACL && (
-                    <Flex className={block(null, className)} gap={4}>
-                        <React.Fragment>
-                            <RequestPermissions
-                                aclMode={aclMode}
+                <Flex className={block(null, className)} gap={4}>
+                    <React.Fragment>
+                        <RequestPermissions
+                            aclMode={aclMode}
+                            path={path}
+                            idmKind={idmKind}
+                            error={requestPermissionsError}
+                            requestPermissions={this.requestPermissions}
+                            cancelRequestPermissions={cancelRequestPermissions}
+                            cluster={cluster}
+                            columnGroups={columnGroups}
+                        />
+                        {aclMode !== AclMode.COLUMN_GROUPS_PERMISSISONS && (
+                            <ManageAcl
+                                loadAclData={loadAclData}
+                                loading={loading}
+                                error={error}
+                                errorData={errorData}
                                 path={path}
                                 idmKind={idmKind}
-                                error={requestPermissionsError}
-                                requestPermissions={this.requestPermissions}
-                                cancelRequestPermissions={cancelRequestPermissions}
-                                cluster={cluster}
-                                columnGroups={columnGroups}
+                                version={version}
+                                inheritAcl={inheritAcl}
+                                bossApproval={bossApproval}
+                                disableInheritanceResponsible={disableInheritanceResponsible}
+                                auditors={auditors}
+                                readApprovers={readApprovers}
+                                responsible={responsible}
+                                updateAcl={this.updateAcl}
+                                manageAclError={updateAclError}
+                                cancelUpdateAcl={cancelUpdateAcl}
                             />
-                            {aclMode !== AclMode.COLUMN_GROUPS_PERMISSISONS && (
-                                <ManageAcl
-                                    loadAclData={loadAclData}
-                                    loading={loading}
-                                    error={error}
-                                    errorData={errorData}
-                                    path={path}
-                                    idmKind={idmKind}
-                                    version={version}
-                                    inheritAcl={inheritAcl}
-                                    bossApproval={bossApproval}
-                                    disableInheritanceResponsible={disableInheritanceResponsible}
-                                    auditors={auditors}
-                                    readApprovers={readApprovers}
-                                    responsible={responsible}
-                                    updateAcl={this.updateAcl}
-                                    manageAclError={updateAclError}
-                                    cancelUpdateAcl={cancelUpdateAcl}
-                                />
-                            )}
-                        </React.Fragment>
-                    </Flex>
-                )}
+                        )}
+                    </React.Fragment>
+                </Flex>
             </ErrorBoundary>
         );
     }
