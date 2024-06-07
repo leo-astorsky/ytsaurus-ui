@@ -99,7 +99,7 @@ export interface YTCoreConfig {
          */
         clientId: string;
         /**
-         *  OpenID Client secret
+         *  OpenID Client secret (env name)
          */
         clientSecret: string;
         /**

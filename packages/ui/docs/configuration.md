@@ -166,7 +166,7 @@ ytOAuthSettings: {
     tokenPath: 'realms/test-realm/protocol/openid-connect/token',
     logoutPath: 'realms/test-realm/protocol/openid-connect/logout',
     clientId: 'test-client',
-    clientSecret: process.env.KEYCLOAK_CLIENT_SECRET,
+    clientSecret: "SECRET_ENV_NAME",
     scope: 'openid profile',
     buttonLabel: 'Login via Keycloak', // OPTIONAL. By default equal `Login via SSO`
 }

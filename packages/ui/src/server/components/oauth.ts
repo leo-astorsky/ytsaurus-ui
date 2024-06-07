@@ -10,7 +10,7 @@ export function isOAuthAllowed(req: Request) {
             config.authPath &&
             config.tokenPath &&
             config.clientId &&
-            config.clientSecret,
+            process.env[config.clientSecret],
     );
 }
 
@@ -111,7 +111,7 @@ export async function refreshOAuthToken(
         grant_type: 'refresh_token',
         client_id: config?.clientId,
         refresh_token: token,
-        client_secret: config?.clientSecret,
+        client_secret: (process.env[config.clientSecret] ?? ""),
     });
     const {data} = await axios.post(
         new URL(config.tokenPath, config.baseURL).toString(),
@@ -135,7 +135,8 @@ export async function exchangeOAuthToken(
         grant_type: 'authorization_code',
         client_id: config.clientId,
         code: code as string,
-        client_secret: config.clientSecret,
+        client_secret: (process.env[config.clientSecret] ?? ""),
+        // client_secret: process.env[config.clientSecret],
         redirect_uri: `https://${host}/api/oauth/callback`,
     });
 
