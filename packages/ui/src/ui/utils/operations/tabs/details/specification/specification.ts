@@ -164,12 +164,14 @@ function prepareTable(
     userTransactionAlive: boolean,
     index?: number | string,
 ) {
-    const path = ypath.getValue(table);
+    const path: string = ypath.getValue(table);
+    const cluster: string | undefined = ypath.getValue(table, '/@cluster');
     const originalPath = ypath.getValue(table, '/@original_path');
     const transaction = prepareTransaction(operation, type, table, userTransactionAlive);
 
     return {
         path,
+        ...(cluster ? {cluster} : {}),
         originalPath,
         transaction,
         livePreview: prepareLivePreview(operation, type, index),
@@ -182,23 +184,33 @@ function prepareTable(
     };
 }
 
-function groupTables<T extends {path: string; transaction?: string}>(tables: Array<T>) {
-    const group: Array<{path: string; name?: string; isFolder?: boolean; transaction?: string}> =
-        [];
-    let currentFolder: string;
+function groupTables<T extends {path: string; transaction?: string; cluster?: string}>(
+    tables: Array<T>,
+) {
+    const group: Array<{
+        path: string;
+        name?: string;
+        isFolder?: boolean;
+        transaction?: string;
+        cluster?: string;
+    }> = [];
+    let currentGroup: string;
 
     _.each(tables, (table) => {
         try {
+            const {cluster} = table;
             const path = ypath.YPath.create(table.path, 'absolute');
             const name = path.getKey();
-            const folder: string = path.toSubpath(-2).stringify();
+            const folder = path.toSubpath(-2).stringify();
+            const groupKey: string = cluster ? `${cluster}:${folder}` : folder;
 
-            if (currentFolder !== folder) {
-                currentFolder = folder;
+            if (currentGroup !== groupKey) {
+                currentGroup = groupKey;
                 group.push({
                     path: folder,
                     transaction: table.transaction,
                     isFolder: true,
+                    ...(cluster ? {cluster} : {}),
                 });
             }
 

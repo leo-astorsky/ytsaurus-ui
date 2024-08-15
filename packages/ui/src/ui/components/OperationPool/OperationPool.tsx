@@ -11,23 +11,15 @@ import {Tab} from '../../constants/scheduling';
 
 import './OperationPool.scss';
 
-OperationPool.defaultProps = {
-    compact: false,
-};
-
 const block = cn('operation-pool');
 
 const renderButton = (onEdit?: () => void, reserve?: boolean) => {
     return !onEdit ? null : (
-        <Button
-            size="s"
-            view="flat-secondary"
-            onClick={onEdit}
-            title="Edit pool"
-            className={block('pool-edit', {reserve})}
-        >
-            <Icon awesome="pencil" />
-        </Button>
+        <span className={block('pool-edit', {reserve})}>
+            <Button size="s" view="flat-secondary" onClick={onEdit} title="Edit pool">
+                <Icon awesome="pencil" />
+            </Button>
+        </span>
     );
 };
 
@@ -47,8 +39,16 @@ export type OperationPoolProps = {
     erased?: boolean;
 };
 
-export function OperationPool(props: OperationPoolProps) {
-    const {className, cluster, reserveEditButton, compact, onEdit, pool, state, erased} = props;
+export function OperationPool({
+    className,
+    cluster,
+    reserveEditButton,
+    compact = false,
+    onEdit,
+    pool,
+    state,
+    erased,
+}: OperationPoolProps) {
     const url = `/${cluster}/${Page.SCHEDULING}/${Tab.OVERVIEW}?pool=${pool.pool}&tree=${pool.tree}`;
     const isCorrectState = state !== 'completed' && state !== 'failed' && state !== 'aborted';
     const title = `${pool.pool} [${pool.tree}]`;

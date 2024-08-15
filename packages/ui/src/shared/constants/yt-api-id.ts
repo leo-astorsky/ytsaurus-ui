@@ -61,6 +61,7 @@ export enum YTApiId {
     navigationGetDocument,
     navigationSaveDocument,
     navigationGetPath,
+    navigationGetType,
     navigationGetPathInfo,
     navigationGetTabletState,
     navigationIsStaticTable,
@@ -167,4 +168,7 @@ export enum YTApiId {
     maintenanceRequests,
     getQueryTrackerInfo,
     switchLeader,
+    listUserTokens,
+    revokeToken,
+    issueToken,
 }

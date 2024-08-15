@@ -62,8 +62,8 @@ if [ "false" = "$(yt exists //sys/pool_trees/e2e)" ]; then
     yt set //sys/pool_trees/default/@config/nodes_filter '"!e2e"'
 
     yt vanilla \
-        --tasks '{main2={"job_count"=10;"command"="sleep 7200"}}' \
-        --spec '{"pool_trees"=[e2e];"scheduling_options_per_pool_tree"={"e2e"={pool=test-e2e}}}' --async
+        --tasks '{main2={job_count=10;command="sleep 28800"};}' \
+        --spec '{alias="*long-operation";pool_trees=[e2e];scheduling_options_per_pool_tree={e2e={pool=test-e2e}};}' --async
 fi
 
 echo -n E2E_OPERATION_ID= >>./e2e-env.tmp
@@ -76,7 +76,7 @@ yt vanilla \
     --spec '{"pool_trees"=[default;e2e];"scheduling_options_per_pool_tree"={"e2e"={pool=test-e2e}}}' --async >>./e2e-env.tmp
 
 if [ "false" = "$(yt exists //sys/pool_trees/default/yt-e2e-pool-1)" ]; then
-    yt create --type scheduler_pool --attributes '{name="yt-e2e-pool-1";pool_tree="default";parent_name="<Root>"}'
+    yt create --type scheduler_pool --attributes '{name="yt-e2e-pool-1";pool_tree="default";parent_name="<Root>";weight=1}'
 fi
 
 if [ "false" = "$(yt exists //sys/pool_trees/default/yt-e2e-pool-2)" ]; then
@@ -112,23 +112,23 @@ function createAccountByPath {
 createAccountByPath //sys/accounts/account-for-e2e
 
 function createAccountNodes {
-    account=$1
+    account=$1-${E2E_SUFFIX}
 
-    yt create -i -r map_node ${E2E_DIR}/${account} --attributes '{account='$account'}'
-    yt create -i -r map_node ${E2E_DIR}/${account}/child-1/0 --attributes '{account='$account'-child-1}'
-    yt create -i -r map_node ${E2E_DIR}/${account}/child-2/0/1 --attributes '{account='$account'-child-2}'
+    yt create -i -r map_node ${E2E_DIR}/${1} --attributes '{account='$account'}'
+    yt create -i -r map_node ${E2E_DIR}/${1}/child-1/0 --attributes '{account='$account'-child-1}'
+    yt create -i -r map_node ${E2E_DIR}/${1}/child-2/0/1 --attributes '{account='$account'-child-2}'
 }
 
 function createAccountForQuotaEditor {
-    account=${1}
+    account=${1}-${E2E_SUFFIX}
     createAccountByPath //sys/accounts/${account} 10
     createAccountByPath //sys/accounts/${account}/${account}-child-1 5
     createAccountByPath //sys/accounts/${account}/${account}-child-2 5
-    createAccountNodes ${account}
+    createAccountNodes ${1}
 }
 
-createAccountForQuotaEditor e2e-parent-${E2E_SUFFIX}
-createAccountForQuotaEditor e2e-overcommit-${E2E_SUFFIX}
+createAccountForQuotaEditor e2e-parent
+createAccountForQuotaEditor e2e-overcommit
 yt set //sys/accounts/e2e-overcommit-${E2E_SUFFIX}/@allow_children_limit_overcommit %true
 
 DYN_TABLE=${E2E_DIR}/dynamic-table
@@ -141,6 +141,7 @@ yt mount-table ${DYN_TABLE}
     done
     set -x
 ) | yt insert-rows --format yson ${DYN_TABLE}
+yt freeze-table ${DYN_TABLE}
 
 STATIC_TABLE=${E2E_DIR}/static-table
 yt create --attributes "{schema=[{name=key;type=string};{name=value;type=string};{name=empty;type=any}]}" table ${STATIC_TABLE}
@@ -165,5 +166,18 @@ yt create --attributes '{schema=[
     echo -e "imageurl_as_text=https://deny-yastatic.net/s3/cloud/yt/static/freeze/assets/images/ui-big.44e3fa56.jpg\t"
 ) | yt write-table --format dsv ${TAGGED_TABLE}
 
-yt create access_control_object_namespace --attr '{name=queries}'
-yt create access_control_object --attr '{namespace=queries;name=nobody}'
+yt create -i access_control_object_namespace --attr '{name=queries}'
+yt create -i access_control_object --attr '{namespace=queries;name=nobody}'
+
+yt set ${E2E_DIR}/@acl '[
+    {action=allow;subjects=[admins;];permissions=[write;administer;remove;mount;];inheritance_mode=object_and_descendants;};
+    {action=allow;subjects=[users;];permissions=[read;];inheritance_mode=object_and_descendants;};
+    {action=allow;subjects=[users;];permissions=[read;write;remove];inheritance_mode=object_and_descendants;};
+]'
+
+yt set ${E2E_DIR}/@inherit_acl %false
+
+if [ "false" = "$(yt exists //sys/tablet_cell_bundles/e2e-bundle)" ]; then
+    yt create tablet_cell_bundle --attributes "{name=e2e-bundle;options=$(yt get //sys/tablet_cell_bundles/default/@options)}"
+    yt create tablet_cell --attributes '{tablet_cell_bundle=e2e-bundle}'
+fi

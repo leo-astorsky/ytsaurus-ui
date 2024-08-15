@@ -39,9 +39,11 @@ TemplateValue.propTypes = {
 /* ----------------------------------------------------------------------------------------------------------------- */
 
 export function TemplateFormattedValue({value, format, settings}) {
+    const fmtIsFunc = typeof format === 'function';
+    const fmt = fmtIsFunc ? undefined : format?.toLowerCase();
     return (
-        <span className={itemBlock('value')}>
-            {typeof format === 'function' ? format(value) : hammer.format[format](value, settings)}
+        <span className={itemBlock('value', {format: fmt})}>
+            {fmtIsFunc ? format(value) : hammer.format[format](value, settings)}
         </span>
     );
 }
@@ -54,7 +56,7 @@ TemplateFormattedValue.propTypes = {
 
 /* ----------------------------------------------------------------------------------------------------------------- */
 
-export function TemplateReadable({value}) {
+export function TemplateReadable({value = hammer.format.NO_VALUE}) {
     return <span className={itemBlock('readable')}>{hammer.format['ReadableField'](value)}</span>;
 }
 
@@ -62,13 +64,9 @@ TemplateReadable.propTypes = {
     value: PropTypes.string,
 };
 
-TemplateReadable.defaultProps = {
-    value: hammer.format.NO_VALUE,
-};
-
 /* ----------------------------------------------------------------------------------------------------------------- */
 
-export function TemplateNumber({value}) {
+export function TemplateNumber({value = hammer.format.NO_VALUE}) {
     return <span className={itemBlock('readable')}>{hammer.format['Number'](value)}</span>;
 }
 
@@ -76,13 +74,9 @@ TemplateNumber.propTypes = {
     value: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
 };
 
-TemplateNumber.defaultProps = {
-    value: hammer.format.NO_VALUE,
-};
-
 /* ----------------------------------------------------------------------------------------------------------------- */
 
-export function TemplateTime({time, valueFormat, settings}) {
+export function TemplateTime({time, valueFormat = 'DateTime', settings}) {
     const content = hammer.format[valueFormat](time, settings);
 
     return (
@@ -96,10 +90,6 @@ TemplateTime.propTypes = {
     time: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
     valueFormat: PropTypes.string,
     settings: PropTypes.object,
-};
-
-TemplateTime.defaultProps = {
-    valueFormat: 'DateTime',
 };
 
 /* ----------------------------------------------------------------------------------------------------------------- */
@@ -159,10 +149,10 @@ TemplateDownloadLink.propTypes = {
 function TemplateLink({
     url,
     icon,
-    text,
+    text = '',
     shiftText = undefined,
     face,
-    withClipboard,
+    withClipboard = false,
     hoverContent = undefined,
 }) {
     return (
@@ -197,11 +187,6 @@ TemplateLink.propTypes = {
     icon: PropTypes.string,
     face: PropTypes.string,
     withClipboard: PropTypes.bool,
-};
-
-TemplateLink.defaultProps = {
-    text: '',
-    withClipboard: false,
 };
 
 /* ----------------------------------------------------------------------------------------------------------------- */

@@ -1,6 +1,5 @@
 import {ThunkAction} from 'redux-thunk';
 import {RootState} from '../../../../store/reducers';
-import FontFaceObserver from 'fontfaceobserver';
 import {ActionD} from '../../../../types';
 import {
     QueryItem,
@@ -17,8 +16,8 @@ import {wrapApiPromiseByToaster} from '../../../../utils/utils';
 import {getPrimitiveTypesMap} from '../../../../store/selectors/global/supported-features';
 import {Type, parseV3Type} from '../../../../components/SchemaDataType/dateTypesV3';
 import ypath from '../../../../common/thor/ypath';
-import {getFontFamilies} from '../../../../store/selectors/settings-ts';
 import forEach_ from 'lodash/forEach';
+import {waitForFontFamilies} from '../../../../store/actions/global/fonts';
 
 export const REQUEST_QUERY_RESULTS = 'query-tracker/REQUEST_QUERY_RESULTS';
 export type RequestQueryResultsAction = ActionD<
@@ -105,17 +104,12 @@ export function applySettings(
     };
 }
 
-function preloadTableFont(fontFamily: string) {
-    return new FontFaceObserver(fontFamily).load(null, 10000);
-}
-
 export function loadQueryResult(
     queryId: QueryItem['id'],
     resultIndex = 0,
 ): ThunkAction<any, RootState, any, QueryResultsActions> {
     return async (dispatch, getState) => {
         const state = getState();
-        const fontFamilies = getFontFamilies(state);
         if (hasQueryResult(state, queryId, resultIndex)) {
             return;
         }
@@ -127,7 +121,7 @@ export function loadQueryResult(
             const meta = await dispatch(getQueryResultMeta(queryId, resultIndex));
             if (meta?.error) throw meta.error;
 
-            await preloadTableFont(fontFamilies.monospace);
+            await dispatch(waitForFontFamilies(null));
             const typeMap = getPrimitiveTypesMap(getState());
             const scheme = (ypath.getValue(meta?.schema) as QueryResultMetaScheme[]) || [];
             const columns =
@@ -163,10 +157,13 @@ export function loadQueryResult(
             const {rows, yql_type_registry: types} = result;
 
             const formattedResult = rows.map((v) => {
-                return Object.entries(v).reduce((acc, [k, [value, typeIndex]]) => {
-                    acc[k] = prepareFormattedValue(value, types[Number(typeIndex)]);
-                    return acc;
-                }, {} as Record<string, {$type: string; $value: unknown}>);
+                return Object.entries(v).reduce(
+                    (acc, [k, [value, typeIndex]]) => {
+                        acc[k] = prepareFormattedValue(value, types[Number(typeIndex)]);
+                        return acc;
+                    },
+                    {} as Record<string, {$type: string; $value: unknown}>,
+                );
             });
             dispatch({
                 type: SET_QUERY_RESULTS,
@@ -231,10 +228,13 @@ export function updateQueryResult(
             const {rows, yql_type_registry: types} = result;
 
             const formattedResult = result.rows.map((v) => {
-                return Object.entries(v).reduce((acc, [k, [value, typeIndex]]) => {
-                    acc[k] = prepareFormattedValue(value, types[Number(typeIndex)]);
-                    return acc;
-                }, {} as Record<string, {$type: string; $value: unknown}>);
+                return Object.entries(v).reduce(
+                    (acc, [k, [value, typeIndex]]) => {
+                        acc[k] = prepareFormattedValue(value, types[Number(typeIndex)]);
+                        return acc;
+                    },
+                    {} as Record<string, {$type: string; $value: unknown}>,
+                );
             });
 
             if (Array.isArray(rows) && rows.length) {

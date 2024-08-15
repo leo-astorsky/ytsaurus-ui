@@ -2,6 +2,7 @@ import React from 'react';
 import cn from 'bem-cn-lite';
 import _ from 'lodash';
 
+import {Button, Dialog, Flex, RadioButton} from '@gravity-ui/uikit';
 // @ts-ignore
 import unipika from '@gravity-ui/unipika/lib/unipika';
 
@@ -23,14 +24,15 @@ import {Toolbar} from '../../WithStickyToolbar/Toolbar/Toolbar';
 import Icon from '../../Icon/Icon';
 import Filter from '../../Filter/Filter';
 import {MultiHighlightedText} from '../../HighlightedText/HighlightedText';
-import Link from '../../Link/Link';
-import {Button, Dialog} from '@gravity-ui/uikit';
+import {ClickableText} from '../../ClickableText/ClickableText';
 const block = cn('structured-yson-virtualized');
 
 interface Props {
     value: UnipikaValue;
     settings: UnipikaSettings;
     extraTools?: React.ReactNode;
+    tableSettings?: DT100.Settings;
+    customLayout?: (args: {toolbar: React.ReactNode; content: React.ReactNode}) => React.ReactNode;
 }
 
 interface State {
@@ -120,6 +122,7 @@ export default class StructuredYsonVirtualized extends React.PureComponent<Props
         this.settings = {
             ...SETTINGS,
             dynamicInnerRef: this.dataTable,
+            ...props.tableSettings,
         };
     }
 
@@ -198,10 +201,16 @@ export default class StructuredYsonVirtualized extends React.PureComponent<Props
                     data={data}
                     theme={'yson'}
                     settings={this.settings}
+                    rowClassName={this.rowClassName}
                 />
             </div>
         );
     }
+
+    rowClassName = ({key}: UnipikaFlattenTreeItem) => {
+        const k = key?.$decoded_value ?? '';
+        return block('row', {key: asModifier(k)});
+    };
 
     onExpandAll = () => {
         this.updateState({collapsedState: {}}, () => {
@@ -365,20 +374,12 @@ export default class StructuredYsonVirtualized extends React.PureComponent<Props
 
         return (
             value && (
-                <Dialog open={true} onClose={this.onHideFullValue}>
-                    <Dialog.Header caption={'Full value'} />
-                    <Dialog.Divider />
-                    <Dialog.Body>
-                        <div className={block('full-value')}>
-                            <MultiHighlightedText
-                                className={block('filtered')}
-                                starts={searchInfo?.valueMatch || []}
-                                text={tmp.substring(1, tmp.length - 1)}
-                                length={filter.length}
-                            />
-                        </div>
-                    </Dialog.Body>
-                </Dialog>
+                <FullValueDialog
+                    onClose={this.onHideFullValue}
+                    starts={searchInfo?.valueMatch || []}
+                    text={tmp.substring(1, tmp.length - 1)}
+                    length={filter.length}
+                />
             )
         );
     }
@@ -386,11 +387,18 @@ export default class StructuredYsonVirtualized extends React.PureComponent<Props
     render() {
         return (
             <React.Fragment>
-                <WithStickyToolbar
-                    className={block()}
-                    toolbar={this.renderToolbar()}
-                    content={this.renderTable()}
-                />
+                {this.props.customLayout ? (
+                    this.props.customLayout({
+                        toolbar: this.renderToolbar(),
+                        content: this.renderTable(),
+                    })
+                ) : (
+                    <WithStickyToolbar
+                        className={block()}
+                        toolbar={this.renderToolbar()}
+                        content={this.renderTable()}
+                    />
+                )}
                 {this.renderFullValueModal()}
             </React.Fragment>
         );
@@ -522,6 +530,10 @@ function Value(props: ValueProps) {
     return <>{renderValueWithFilter(props, block('value', {type: props.text?.$type}))}</>;
 }
 
+function asModifier(path = '') {
+    return path.replace(/[^-\w\d]/g, '_');
+}
+
 function renderValueWithFilter(props: ValueProps, className: string) {
     if ('string' === props.text?.$type) {
         return renderStringWithFilter(props, className, 100);
@@ -553,7 +565,7 @@ function renderStringWithFilter(props: ValueProps, className: string, maxWidth =
                 length={filter?.length}
             />
             {truncated && (
-                <Link
+                <ClickableText
                     className={block('filtered', {
                         highlighted: hasHiddenMatch,
                     })}
@@ -561,7 +573,7 @@ function renderStringWithFilter(props: ValueProps, className: string, maxWidth =
                 >
                     {'\u2026'}
                     <Icon awesome={'external-link'} />
-                </Link>
+                </ClickableText>
             )}
             &quot;
         </span>
@@ -654,6 +666,60 @@ function ToggleCollapseButton(props: ToggleCollapseProps) {
             </Button>
         </span>
     );
+}
+
+interface FullValueDialogProps {
+    onClose: () => void;
+    length: number;
+    text: string;
+    starts: number[];
+}
+function FullValueDialog(props: FullValueDialogProps) {
+    const {onClose, text, starts, length} = props;
+
+    const [type, setType] = React.useState<'raw' | 'parsed'>('parsed');
+
+    return (
+        <Dialog open={true} onClose={onClose}>
+            <Dialog.Header caption={'Full value'} />
+            <Dialog.Divider />
+            <Dialog.Body>
+                <Flex direction="column" gap={2} width="70vw" maxHeight="80vh">
+                    <RadioButton
+                        className={block('full-value-radio-buttons')}
+                        options={[
+                            {value: 'parsed', content: 'Parsed'},
+                            {value: 'raw', content: 'Raw'},
+                        ]}
+                        onUpdate={setType}
+                    />
+                    <div className={block('full-value')}>
+                        {type === 'raw' && (
+                            <MultiHighlightedText
+                                className={block('filtered')}
+                                starts={starts}
+                                text={text}
+                                length={length}
+                            />
+                        )}
+                        {type === 'parsed' && <pre>{getParsedFullValue(text)}</pre>}
+                    </div>
+                </Flex>
+            </Dialog.Body>
+        </Dialog>
+    );
+}
+
+function getParsedFullValue(text: string) {
+    try {
+        return JSON.parse(text);
+    } catch {
+        try {
+            return JSON.parse(`"${text}"`);
+        } catch {
+            return text;
+        }
+    }
 }
 
 function formatValue(

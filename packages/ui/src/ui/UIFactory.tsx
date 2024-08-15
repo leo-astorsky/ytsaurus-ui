@@ -30,6 +30,8 @@ import {PreparedRole} from './utils/acl';
 import {UISettingsMonitoring} from '../shared/ui-settings';
 import {DefaultSubjectCard, type SubjectCardProps} from './components/SubjectLink/SubjectLink';
 import type {QueryItem} from './pages/query-tracker/module/api';
+import type {DropdownMenuItem} from '@gravity-ui/uikit';
+import {CUSTOM_QUERY_REQULT_TAB} from './pages/query-tracker/QueryResultsVisualization';
 
 type HeaderItemOrPage =
     | {
@@ -97,6 +99,19 @@ export interface OperationMonitoringTabProps {
 
 export type AclRoleActionsType = Partial<Omit<PreparedAclSubject | PreparedRole, 'type'>> & {
     type?: string;
+};
+
+export type TabName = string;
+
+export type ExtraTab = {
+    value: `extra_${TabName}`;
+    title: string;
+    text?: string;
+    caption?: string;
+    hotkey?: string;
+    component: React.ComponentType;
+    isSupported: (attributes: Record<string, any>) => boolean;
+    position: {before: TabName} | {after: TabName};
 };
 
 export interface UIFactory {
@@ -389,6 +404,13 @@ export interface UIFactory {
     getAclPermissionsSettings(): typeof PERMISSIONS_SETTINGS;
 
     onChytAliasSqlClick(params: {alias: string; cluster: string}): void;
+
+    getNavigationExtraTabs(): Array<ExtraTab>;
+
+    getMapNodeExtraCreateActions(baseActions: Array<DropdownMenuItem>): {
+        menuItems: Array<DropdownMenuItem>;
+        renderModals: () => React.ReactNode;
+    };
 }
 
 const experimentalPages: string[] = [];
@@ -632,7 +654,7 @@ const uiFactory: UIFactory = {
     },
 
     getCustomQueryResultTab() {
-        return undefined;
+        return CUSTOM_QUERY_REQULT_TAB;
     },
 
     getExternalSettings() {
@@ -662,6 +684,17 @@ const uiFactory: UIFactory = {
     },
 
     onChytAliasSqlClick() {},
+
+    getNavigationExtraTabs() {
+        return [];
+    },
+
+    getMapNodeExtraCreateActions(baseActions) {
+        return {
+            menuItems: baseActions,
+            renderModals: () => undefined,
+        };
+    },
 };
 
 function configureUIFactoryItem<K extends keyof UIFactory>(k: K, redefinition: UIFactory[K]) {

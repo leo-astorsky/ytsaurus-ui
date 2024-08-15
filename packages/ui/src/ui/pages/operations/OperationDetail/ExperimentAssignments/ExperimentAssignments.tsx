@@ -9,11 +9,11 @@ import {
     OperationExperimentItem,
     getOperationExperimentAssignments,
 } from '../../../../store/selectors/operations/operation';
+import {ClickableText} from '../../../../components/ClickableText/ClickableText';
 import MetaTable from '../../../../components/MetaTable/MetaTable';
 import StarTrackLink from '../../../../components/StarTrackLink/StarTrackLink';
 import Yson from '../../../../components/Yson/Yson';
 import {getOperationExperimentsYsonSettings} from '../../../../store/selectors/thor/unipika';
-import Link from '../../../../components/Link/Link';
 import {UI_COLLAPSIBLE_SIZE} from '../../../../constants/global';
 
 const block = cn('experiment-assignments');
@@ -37,6 +37,7 @@ function ExperimentAssignments({className}: {className: string}) {
             onToggle={onToggleCollapse}
             collapsed={collapsed}
             size={UI_COLLAPSIBLE_SIZE}
+            marginDirection="bottom"
         >
             {_.map(items, (item, index) => (
                 <ExperimentsItem key={index} data={item} />
@@ -91,9 +92,9 @@ function ExperimentAssignmentsItem(props: ItemProps) {
                         {
                             key: 'Effect',
                             value: (
-                                <Link onClick={toggleEffectVisibility}>
+                                <ClickableText onClick={toggleEffectVisibility}>
                                     {effectVisible ? 'Hide' : 'Show'}
-                                </Link>
+                                </ClickableText>
                             ),
                         },
                     ],

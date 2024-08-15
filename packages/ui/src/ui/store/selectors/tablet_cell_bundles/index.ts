@@ -18,7 +18,7 @@ import {prepareHost} from '../../../utils';
 import {getCluster} from '../global';
 import {sortArrayBySortState} from '../../../utils/sort-helpers';
 import {sortTableBundles} from '../../../utils/tablet_cell_bundles';
-import {makeNodeUrl, makeProxyUrl} from '../../../utils/app-url';
+import {makeComponentsNodesUrl, makeProxyUrl} from '../../../utils/app-url';
 import {
     getTabletCellBundleControllerInstanceDetailsMap,
     getTabletCellBundleEditorState,
@@ -67,7 +67,7 @@ export const getTabletsDefaultMemoryConfiguration = createSelector(
         const nodeSizes = config.zone_default.tablet_node_sizes;
 
         const key =
-            editorState.bundleData?.bundle_controller_target_config.tablet_node_resource_guarantee
+            editorState.bundleData?.bundle_controller_target_config?.tablet_node_resource_guarantee
                 .type;
 
         if (!key || !(key in nodeSizes)) return 0;
@@ -134,7 +134,7 @@ export const getActiveBundleInstances = createSelector(
             allocated_tablet_nodes,
             allocating_tablet_nodes,
             instanceDetailsMap,
-            (address) => makeNodeUrl(cluster, address),
+            (address) => makeComponentsNodesUrl({host: address, cluster}),
         );
     },
 );

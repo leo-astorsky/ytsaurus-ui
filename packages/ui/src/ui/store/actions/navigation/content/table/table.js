@@ -1,5 +1,4 @@
 import _ from 'lodash';
-import FontFaceObserver from 'fontfaceobserver';
 import {Toaster} from '@gravity-ui/uikit';
 import metrics from '../../../../../common/utils/metrics';
 
@@ -31,7 +30,6 @@ import {
     getParsedError,
     getRequestOutputFormat,
     parseErrorFromResponse,
-    prepareHeaders,
     prepareRows,
 } from '../../../../../utils/navigation/content/table/table';
 
@@ -61,13 +59,15 @@ import {
     getTableColumnNamesFromSchema,
 } from '../../../../../store/selectors/navigation/content/table-ts';
 import {mergeScreen} from '../../../../../store/actions/global';
+import {waitForFontFamilies} from '../../../../../store/actions/global/fonts';
 import {injectColumnsFromSchema} from '../../../../../utils/navigation/content/table/table-ts';
 import {YTApiId, ytApiV3, ytApiV3Id} from '../../../../../rum/rum-wrap-api';
 import unipika from '../../../../../common/thor/unipika';
 
 import {loadColumnPresetIfDefined, saveColumnPreset, setTablePresetHash} from './columns-preset';
 import {makeTableRumId} from './table-rum-id';
-import {getFontFamilies} from '../../../../selectors/settings-ts';
+import {readStaticTable} from './readStaticTable';
+import {readDynamicTable} from './readDynamicTable';
 
 const requests = new CancelHelper();
 const toaster = new Toaster();
@@ -216,32 +216,22 @@ function loadDynamicTable(requestOutputFormat, setup, state, type, useZeroRangeF
         return id
             .fetch(
                 YTApiId.dynTableSelectRows,
-                ytApiV3Id.selectRows(YTApiId.dynTableSelectRows, {
+                readDynamicTable({
                     setup,
                     parameters,
                     cancellation: requests.saveCancelToken,
                 }),
             )
-            .then(({data}) => {
-                const error = parseErrorFromResponse(data);
-
-                if (error) {
-                    return Promise.reject(getParsedError(error));
-                }
-
-                const {columns, rows, yqlTypes} = prepareRows(data, moveBackward);
-
+            .then((data) => {
                 return {
-                    rows,
-                    columns,
-                    yqlTypes,
+                    ...data,
                     omittedColumns,
                 };
             });
     }
 }
 
-function loadStaticTable(requestOutputFormat, setup, state, type, useZeroRangeForPreload) {
+async function loadStaticTable(requestOutputFormat, setup, state, type, useZeroRangeForPreload) {
     const path = getPath(state);
     const stringLimit = getCellSize(state);
     const transaction = getTransaction(state);
@@ -284,23 +274,15 @@ function loadStaticTable(requestOutputFormat, setup, state, type, useZeroRangeFo
     const id = makeTableRumId({cluster, isDynamic});
     const apiId = type === LOAD_TYPE.PRELOAD ? YTApiId.tableReadPreload : YTApiId.tableRead;
 
-    return id
-        .fetch(
-            apiId,
-            ytApiV3Id.readTable(apiId, {setup, parameters, cancellation: requests.saveCancelToken}),
-        )
-        .then(({data, headers}) => {
-            const error = parseErrorFromResponse(data);
-
-            if (error) {
-                return Promise.reject(getParsedError(error));
-            }
-
-            const {columns, rows, yqlTypes} = prepareRows(data, moveBackward);
-            const omittedColumns = prepareHeaders(headers);
-
-            return {columns, omittedColumns, rows, yqlTypes};
-        });
+    return await id.fetch(
+        apiId,
+        readStaticTable({
+            setup,
+            parameters,
+            cancellation: requests.saveCancelToken,
+            reverseRows: moveBackward,
+        }),
+    );
 }
 
 function loadTableRows(type, state, requestOutputFormat) {
@@ -365,11 +347,6 @@ function restoreColumns(state) {
                 ...(deniedKeyColumns ? {deniedKeyColumns} : {}),
             };
         });
-}
-
-// TODO: consider switching back for <link rel="preload"> once it's supported in all major browsers
-function preloadTableFont(fontFamily) {
-    return new FontFaceObserver(fontFamily).load(null, 10000);
 }
 
 export function updateTableData() {
@@ -453,7 +430,6 @@ export function getTableData() {
         const state = getState();
 
         const attributes = getAttributes(state);
-        const fontFamilies = getFontFamilies(state);
 
         return dispatch(loadColumnPresetIfDefined()).then(() => {
             const updateColumns = ({
@@ -497,11 +473,8 @@ export function getTableData() {
             // 3. If at the previous step was returned an array then building columns based on stored columns and save their in the store.
             // 4. load table rows for columns in the store
 
-            return Promise.all([
-                restoreColumns(getState()),
-                preloadTableFont(fontFamilies.monospace),
-            ])
-                .then(([{columns, omittedColumns, storedColumns, ...rest}]) => {
+            return dispatch(waitForFontFamilies(restoreColumns(getState())))
+                .then(({columns, omittedColumns, storedColumns, ...rest}) => {
                     if (columns) {
                         updateColumns({
                             rows: [],
@@ -654,7 +627,7 @@ export function mountUnmountTable(action) {
             .then(() => {
                 toaster.add({
                     name: `${action} table`,
-                    type: 'success',
+                    theme: 'success',
                     title: `Success ${action}ing table`,
                 });
                 return dispatch(updateView());
@@ -663,7 +636,7 @@ export function mountUnmountTable(action) {
                 console.error(err);
                 toaster.add({
                     name: `${action} table`,
-                    type: 'error',
+                    theme: 'danger',
                     title: `Could not ${action} table.`,
                     content: err?.message || 'Oops, something went wrong',
                     actions: [{label: ' view', onClick: () => showErrorPopup(err)}],

@@ -191,7 +191,7 @@ export default function ColumnGroups({
                     )}
                 </div>
                 <WithStickyToolbar
-                    disableToolbarTopPadding
+                    padding="skip-vertical"
                     bottomMargin="regular"
                     toolbar={
                         <Toolbar
@@ -271,7 +271,6 @@ export function ColumnGroupsFilter({
             value={value}
             onUpdate={(columnsFilter) => updateAclFilters({columnsFilter})}
             maxVisibleValuesTextLength={60}
-            disablePortal={false}
             width="max"
         />
     );
