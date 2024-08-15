@@ -1,5 +1,27 @@
 # Changelog
 
+## [0.11.0](https://github.com/leo-astorsky/ytsaurus-ui/compare/javascript-wrapper-v0.10.0...javascript-wrapper-v0.11.0) (2024-08-15)
+
+
+### Features
+
+* add get_query_tracker_info method ([3c0931e](https://github.com/leo-astorsky/ytsaurus-ui/commit/3c0931e421b6238cb989664e9e153a8e315e5896))
+* **javascript-wrapper/codes:** add OPERATION_FAILED_TO_PREPARE == 216 ([dc331e4](https://github.com/leo-astorsky/ytsaurus-ui/commit/dc331e43d5e043ddeebcff4e7f285b197ab43ab4))
+* **javascript-wrapper/codes:** add OPERATION_JOBS_LIMIT_EXEEDED == 215 ([25b6b82](https://github.com/leo-astorsky/ytsaurus-ui/commit/25b6b82ab98187701a92dac159b323f82189a1ad))
+* **javascript-wrapper:** add new commands for pipelines [YTFRONT-3978] ([da70313](https://github.com/leo-astorsky/ytsaurus-ui/commit/da70313424b8042e6782d8fe9a642c9703465d54))
+* **javascript-wrapper:** add token methods [[#241](https://github.com/leo-astorsky/ytsaurus-ui/issues/241)] ([8a6df81](https://github.com/leo-astorsky/ytsaurus-ui/commit/8a6df81422f83a318084c39578707b937c59c7ea))
+* **javascript-wrapper:** added switchLeader method ([05c3b3f](https://github.com/leo-astorsky/ytsaurus-ui/commit/05c3b3f13267875462730efe797788859b86496f))
+
+
+### Bug Fixes
+
+* **axios/withXSRFToken:** additional to 19df8249298397c09af6cee2bdc682ffe08c8836 ([9c3e893](https://github.com/leo-astorsky/ytsaurus-ui/commit/9c3e893fdfd25eed5cccfa2ac4fab950a4f8c05d))
+* **axios:** use withXSRFToken ([19df824](https://github.com/leo-astorsky/ytsaurus-ui/commit/19df8249298397c09af6cee2bdc682ffe08c8836))
+* **javascript-wrapper:** better error handler ([f4c9afd](https://github.com/leo-astorsky/ytsaurus-ui/commit/f4c9afd8d97c9a82edb8620ef46913f90aa58c63))
+* **Naviagation/Table/Merge:** use body for merge command [YTFRONT-3953] ([4d50cef](https://github.com/leo-astorsky/ytsaurus-ui/commit/4d50cef5cce576ae922d470d8fad40357f138b3a))
+* **package.json:** fix for 'repository.url' ([72f7a8f](https://github.com/leo-astorsky/ytsaurus-ui/commit/72f7a8f95e295b7a267f5ef1627bb013260fbe1f))
+* **Queries:** use POST-data for parameters of startQuery-command [YTFRONT-4023] ([64ade59](https://github.com/leo-astorsky/ytsaurus-ui/commit/64ade5921d3733409f74f3817bad50ecb9d014b2))
+
 ## [0.10.0](https://github.com/ytsaurus/ytsaurus-ui/compare/javascript-wrapper-v0.9.3...javascript-wrapper-v0.10.0) (2024-07-30)
 
 
