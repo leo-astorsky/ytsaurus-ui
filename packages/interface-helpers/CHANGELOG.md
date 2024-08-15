@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.4.0](https://github.com/leo-astorsky/ytsaurus-ui/compare/interface-helpers-v0.3.1...interface-helpers-v0.4.0) (2024-08-15)
+
+
+### Features
+
+* **format/hex:** return the default `NO_VALUE` when non numerical value is passed [YTFRONT-3946] ([cf3a6c4](https://github.com/leo-astorsky/ytsaurus-ui/commit/cf3a6c4f77528b00bc1f0a67b47e0504a02a23f0))
+
+
+### Bug Fixes
+
+* **package.json:** fix for 'repository.url' ([72f7a8f](https://github.com/leo-astorsky/ytsaurus-ui/commit/72f7a8f95e295b7a267f5ef1627bb013260fbe1f))
+
 ## [0.3.1](https://github.com/ytsaurus/ytsaurus-ui/compare/interface-helpers-v0.3.0...interface-helpers-v0.3.1) (2024-07-25)
 
 
